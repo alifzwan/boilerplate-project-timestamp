@@ -11,23 +11,31 @@ app.get("/", function (request, response) {
   response.sendFile(__dirname + '/views/index.html');
 })
 
-// Fetch JSON data and send it to the client-side for display
-app.get("/api/timestamp", async function (request, response) {
-  try {
-    const timestamp = request.query.timestamp; // Get timestamp from query string (optional)
-    const url = timestamp ? `https://timestamp-microservice.freecodecamp.rocks/api/${timestamp}` : 'https://timestamp-microservice.freecodecamp.rocks/api/1451001600000'; // Default URL or use timestamp from query string
-
-    // Use dynamic import for node-fetch (less common approach)
-    const { default: fetch } = await import('node-fetch');
-
-    const responseJson = await fetch(url); // Fetch JSON data
-    const jsonData = await responseJson.json(); // Parse JSON response
-
-    response.json(jsonData); // Send JSON data back to the client
-  } catch (error) {
-    console.error(error);
-    response.status(500).send("Error fetching data"); // Handle errors
+// Function to parse date string and handle errors
+function parseDate(dateString) {
+  if (!dateString) { // Empty date parameter, return current time
+    return new Date();
   }
+  const parsedDate = new Date(dateString);
+  if (isNaN(parsedDate.getTime())) { // Invalid date string
+    return null;
+  }
+  return parsedDate;
+}
+
+// API endpoint to handle date requests
+app.get("/api/:date?", async function (request, response) {
+  const dateString = request.params.date;
+  const parsedDate = parseDate(dateString);
+
+  if (!parsedDate) { // Invalid date
+    return response.json({ error: "Invalid Date" });
+  }
+
+  const unix = parsedDate.getTime();
+  const utc = parsedDate.toUTCString();
+
+  response.json({ unix, utc });
 })
 
 const PORT = process.env.PORT || 3000
