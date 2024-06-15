@@ -1,44 +1,28 @@
-require('dotenv').config()
-const express = require('express')
-const app = express()
 
-const cors = require('cors')
+const express = require('express');
+const app = express();
 
-app.use(cors())
-app.use(express.static('public'))
 
-app.get("/", function (request, response) {
-  response.sendFile(__dirname + '/views/index.html');
-})
+const cors = require('cors');
+app.use(cors({optionsSuccessStatus: 200}));  // some legacy browsers choke on 204
 
-// Function to parse date string and handle errors
-function parseDate(dateString) {
-  if (!dateString) { // Empty date parameter, return current time
-    return new Date();
-  }
-  const parsedDate = new Date(dateString);
-  if (isNaN(parsedDate.getTime())) { // Invalid date string
-    return null;
-  }
-  return parsedDate;
-}
+// http://expressjs.com/en/starter/static-files.html
+app.use(express.static('public'));
 
-// API endpoint to handle date requests
-app.get("/api/:date?", async function (request, response) {
-  const dateString = request.params.date;
-  const parsedDate = parseDate(dateString);
+// http://expressjs.com/en/starter/basic-routing.html
+app.get("/", function (req, res) {
+  res.sendFile(__dirname + '/views/index.html');
+});
 
-  if (!parsedDate) { // Invalid date
-    return response.json({ error: "Invalid Date" });
-  }
 
-  const unix = parsedDate.getTime();
-  const utc = parsedDate.toUTCString();
+// your first API endpoint... 
+app.get("/api/hello", function (req, res) {
+  res.json({greeting: 'hello API'});
+});
 
-  response.json({ unix, utc });
-})
+
 
 const PORT = process.env.PORT || 3000
 app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
+  console.log(`Server is running on port ${PORT}`);
 });
